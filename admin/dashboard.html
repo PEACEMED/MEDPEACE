@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Admin Dashboard - MEDPEACE</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/tokens.css">
+  <link rel="stylesheet" href="../css/home.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap">
+      <a class="logo" href="../index.html">
+        <svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="11" fill="#16233B"/><path d="M10 29V15l10 10 10-10v14" fill="none" stroke="#CFE3F8" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="20" cy="10.5" r="2.2" fill="#8FC8F0"/></svg>
+        <span class="word">MED<b>PEACE</b> <span style="font-size: 10px; background: #ff6b6b; color: white; padding: 2px 6px; border-radius: 4px; margin-left: 5px; letter-spacing: normal;">ADMIN</span></span>
+      </a>
+      <nav class="links">
+        <a href="dashboard.html" style="color: var(--frost)">Overview</a>
+        <a href="courses.html">Manage Courses</a>
+        <button id="logout-btn" class="pill" style="border:none; cursor:pointer;">Log Out</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap admin-main">
+    <header class="admin-header">
+      <h1>Platform Overview</h1>
+    </header>
+
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-card">
+        <h3>Total Students</h3>
+        <div class="value" id="stat-students">...</div>
+      </div>
+      <div class="stat-card">
+        <h3>Total Courses</h3>
+        <div class="value" id="stat-courses">...</div>
+      </div>
+      <div class="stat-card">
+        <h3>Total Lectures</h3>
+        <div class="value" id="stat-lectures">...</div>
+      </div>
+    </div>
+
+    <h2 style="color: var(--frost); margin-bottom: 1rem;">Students by Academic Year</h2>
+    <div class="admin-table-container">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Year</th>
+            <th>Registered Students</th>
+          </tr>
+        </thead>
+        <tbody id="year-stats-table">
+          <tr><td colspan="2" style="text-align: center;">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/supabase-client.js"></script>
+  <script src="../js/admin.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const session = await AdminAuth.checkAuth();
+      if (!session) return;
+      AdminAuth.setupLogout();
+
+      // Fetch Stats
+      const { count: studentCount } = await supabaseClient.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'student');
+      const { count: courseCount } = await supabaseClient.from('courses').select('*', { count: 'exact', head: true });
+      const { count: lectureCount } = await supabaseClient.from('lectures').select('*', { count: 'exact', head: true });
+
+      document.getElementById('stat-students').textContent = studentCount || 0;
+      document.getElementById('stat-courses').textContent = courseCount || 0;
+      document.getElementById('stat-lectures').textContent = lectureCount || 0;
+
+      // Fetch Students grouped by year
+      const { data: profiles } = await supabaseClient.from('profiles').select('academic_year').eq('role', 'student');
+      
+      const yearCounts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
+      if (profiles) {
+        profiles.forEach(p => {
+          if (yearCounts[p.academic_year] !== undefined) yearCounts[p.academic_year]++;
+        });
+      }
+
+      const yearNames = { 1: 'First Year', 2: 'Second Year', 3: 'Third Year', 4: 'Fourth Year', 5: 'Fifth Year', 6: 'Sixth Year' };
+      const tableBody = document.getElementById('year-stats-table');
+      tableBody.innerHTML = Object.keys(yearCounts).map(year => `
+        <tr>
+          <td>${yearNames[year]}</td>
+          <td>${yearCounts[year]} students</td>
+        </tr>
+      `).join('');
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+@media (max-width:480px) {
+    .btn {
+        flex: 1 1 40%;
+        padding: .6rem;
+        font-size: .8rem
+    }
+
+    .btn.end {
+        width: 100%
+    }
+
+    .grid {
+        gap: 8px
+    }
+
+    .stat b {
+        font-size: 1.15rem
+    }
+
+    main {
+        padding-top: 4.2rem
+    }
+}
+
+@media (max-height:520px) and (orientation:landscape) {
+    main {
+        align-items: flex-start
+    }
+}
+
+@media (prefers-reduced-motion:reduce) {
+    * {
+        transition: none !important
+    }
+}

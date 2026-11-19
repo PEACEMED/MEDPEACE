@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Manage Subjects - MEDPEACE Admin</title>
+  <link rel="stylesheet" href="../css/tokens.css">
+  <link rel="stylesheet" href="../css/home.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap">
+      <a class="logo" href="../index.html"><span class="word">MED<b>PEACE</b> ADMIN</span></a>
+      <nav class="links">
+        <a href="dashboard.html">Overview</a>
+        <a href="courses.html" style="color: var(--frost)">Manage Courses</a>
+        <button id="logout-btn" class="pill" style="border:none; cursor:pointer;">Log Out</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap admin-main">
+    <a href="courses.html" style="color: var(--ice); text-decoration: none; margin-bottom: 1rem; display: inline-block;">← Back to Courses</a>
+    
+    <header class="admin-header">
+      <h1 id="page-title">Subjects for...</h1>
+      <button class="btn-add" id="btn-add-subject">+ Add New Subject</button>
+    </header>
+
+    <div class="admin-table-container">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Order</th>
+            <th>Subject Title</th>
+            <th>Description</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="subjects-table-body">
+          <tr><td colspan="4" style="text-align: center;">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- Subject Modal -->
+  <div class="modal-overlay" id="subject-modal">
+    <div class="modal-content">
+      <h2 id="modal-title">Add Subject</h2>
+      <form id="subject-form">
+        <input type="hidden" id="subject-id">
+        <div class="form-group">
+          <label>Subject Title</label>
+          <input type="text" id="subject-title" required placeholder="e.g., Upper Limb">
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="subject-desc" placeholder="Optional short description..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Display Order</label>
+          <input type="number" id="subject-order" value="1" required>
+        </div>
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+          <button type="submit" class="btn-add" style="flex: 1;">Save Subject</button>
+          <button type="button" class="action-btn" id="btn-close-modal" style="flex: 1; padding: 0.8rem;">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/supabase-client.js"></script>
+  <script src="../js/admin.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const session = await AdminAuth.checkAuth();
+      if (!session) return;
+      AdminAuth.setupLogout();
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const courseId = urlParams.get('id');
+      if (!courseId) { window.location.href = 'courses.html'; return; }
+
+      const modal = document.getElementById('subject-modal');
+      const form = document.getElementById('subject-form');
+      const tableBody = document.getElementById('subjects-table-body');
+      
+      // Fetch Course Name
+      const { data: course } = await supabaseClient.from('courses').select('title').eq('id', courseId).single();
+      if (course) document.getElementById('page-title').textContent = `Subjects: ${course.title}`;
+
+      // Load Subjects
+      async function loadSubjects() {
+        const { data: subjects, error } = await supabaseClient.from('subjects').select('*').eq('course_id', courseId).order('display_order');
+        if (error) return console.error(error);
+
+        if (!subjects || subjects.length === 0) {
+          tableBody.innerHTML = '<tr><td colspan="4" style="text-align: center;">No subjects found. Add one!</td></tr>';
+          return;
+        }
+
+        tableBody.innerHTML = subjects.map(s => `
+          <tr>
+            <td>${s.display_order}</td>
+            <td>${s.title}</td>
+            <td>${s.description || '-'}</td>
+            <td>
+              <a href="lectures.html?subject_id=${s.id}" class="action-btn" style="text-decoration:none;">Manage Content</a>
+              <button class="action-btn" onclick="editSubject('${s.id}')">Edit</button>
+              <button class="action-btn danger" onclick="deleteSubject('${s.id}')">Delete</button>
+            </td>
+          </tr>
+        `).join('');
+        window.allSubjects = subjects;
+      }
+
+      document.getElementById('btn-add-subject').onclick = () => {
+        form.reset(); document.getElementById('subject-id').value = ''; 
+        document.getElementById('modal-title').textContent = 'Add Subject';
+        modal.classList.add('active');
+      };
+      document.getElementById('btn-close-modal').onclick = () => modal.classList.remove('active');
+
+      form.onsubmit = async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('subject-id').value;
+        const payload = {
+          course_id: courseId,
+          title: document.getElementById('subject-title').value,
+          description: document.getElementById('subject-desc').value,
+          display_order: parseInt(document.getElementById('subject-order').value)
+        };
+
+        if (id) await supabaseClient.from('subjects').update(payload).eq('id', id);
+        else await supabaseClient.from('subjects').insert([payload]);
+        
+        modal.classList.remove('active');
+        loadSubjects();
+      };
+
+      window.editSubject = (id) => {
+        const s = window.allSubjects.find(x => x.id === id);
+        document.getElementById('subject-id').value = s.id;
+        document.getElementById('subject-title').value = s.title;
+        document.getElementById('subject-desc').value = s.description || '';
+        document.getElementById('subject-order').value = s.display_order;
+        document.getElementById('modal-title').textContent = 'Edit Subject';
+        modal.classList.add('active');
+      };
+
+      window.deleteSubject = async (id) => {
+        if (confirm('Delete this subject and ALL its lectures/resources?')) {
+          await supabaseClient.from('subjects').delete().eq('id', id);
+          loadSubjects();
+        }
+      };
+
+      loadSubjects();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,187 @@
+/* css/dashboard.css */
+.dashboard-main {
+  padding-top: 100px;
+  padding-bottom: 4rem;
+  min-height: 100vh;
+}
+
+.welcome-section {
+  margin-bottom: 3rem;
+}
+
+.welcome-section h1 {
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  color: var(--frost);
+  margin-bottom: 0.5rem;
+}
+
+.welcome-section p {
+  color: var(--muted);
+  font-size: 1.05rem;
+}
+
+.welcome-section strong {
+  color: var(--ice);
+}
+
+/* Quick Links */
+.quick-links {
+  margin-bottom: 3rem;
+}
+
+.quick-links h2 {
+  font-size: 1.3rem;
+  color: var(--frost);
+  margin-bottom: 1rem;
+}
+
+.quick-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.2rem;
+}
+
+.quick-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  transition: 0.3s var(--ease);
+}
+
+.quick-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--ice);
+  background: var(--surface-2);
+}
+
+.quick-card h3 {
+  color: var(--frost);
+  margin-bottom: 0.5rem;
+}
+
+.quick-card p {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* Courses Section */
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.section-head h2 {
+  font-size: 1.3rem;
+  color: var(--frost);
+}
+
+.view-all {
+  color: var(--ice);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.course-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.course-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  transition: 0.3s var(--ease);
+}
+
+.course-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--ice);
+  box-shadow: 0 10px 30px -10px rgba(143, 200, 240, 0.2);
+}
+
+.course-card h3 {
+  color: var(--frost);
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.course-card p {
+  color: var(--muted);
+  font-size: 0.9rem;
+  flex: 1;
+  margin-bottom: 1.5rem;
+}
+
+.course-link {
+  display: inline-block;
+  color: var(--ice);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* Loading & Empty States */
+.loading-text, .empty-text {
+  color: var(--muted);
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 3rem;
+  font-size: 1.1rem;
+}
+/* css/dashboard.css - Add to the bottom */
+
+/* Smooth Fade-in Animation for all grids */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.course-grid, #lectures-list, #resources-list {
+  animation: fadeInUp 0.5s var(--ease) forwards;
+}
+
+/* Polish for Subject Cards */
+.course-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.course-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 3px;
+  background: linear-gradient(90deg, var(--ice), transparent);
+  opacity: 0;
+  transition: 0.3s;
+}
+
+.course-card:hover::before {
+  opacity: 1;
+}
+
+/* Polish for Resources (Books/MCQs) */
+#resources-list a {
+  border-radius: 8px;
+  transition: 0.2s var(--ease);
+  border-left: 2px solid transparent;
+}
+
+#resources-list a:hover {
+  background: var(--surface-2);
+  border-left-color: var(--ice);
+  padding-left: 1.2rem; /* Slight slide effect */
+}
+
+/* Better buttons for Admin */
+.btn-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 15px rgba(143, 200, 240, 0.2);
+}

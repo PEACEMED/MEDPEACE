@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Resources - MEDPEACE</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/tokens.css">
+  <link rel="stylesheet" href="../css/home.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+  <header class="nav student-nav">
+    <div class="wrap">
+      <a class="logo" href="../index.html">
+        <svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="11" fill="#16233B"/><path d="M10 29V15l10 10 10-10v14" fill="none" stroke="#CFE3F8" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="20" cy="10.5" r="2.2" fill="#8FC8F0"/></svg>
+        <span class="word">MED<b>PEACE</b></span>
+      </a>
+      <nav class="links">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="resources.html" style="color: var(--frost)">Resources</a>
+        <a href="account.html">Account</a>
+        <a href="../tools/penguin-stopwatch/index.html">Stopwatch</a>
+        <button id="logout-btn" class="pill" style="border:none; cursor:pointer;">Log Out</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap dashboard-main">
+    <section class="welcome-section">
+      <h1>Resources Library</h1>
+      <p>All available courses for <strong id="student-year">...</strong>.</p>
+    </section>
+
+    <div class="course-grid" id="all-courses">
+      <!-- Courses will be injected here by JS -->
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/supabase-client.js"></script>
+  <script src="../js/student.js"></script>
+</body>
+</html>

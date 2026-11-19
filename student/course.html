@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Course - MEDPEACE</title>
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#070B14">
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/tokens.css">
+  <link rel="stylesheet" href="../css/home.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <style>
+    button.pill { border: 0; font: inherit; font-weight: 600; cursor: pointer; }
+    .student-nav .links a[aria-current="page"] { color: var(--frost); }
+
+    .back-link { display: inline-block; color: var(--ice); text-decoration: none; font-size: .92rem; }
+    .back-link:hover { color: var(--frost); }
+    #course-title { margin: 1rem 0 .6rem; color: var(--frost); font-weight: 600; letter-spacing: -.01em; }
+    #course-desc { margin-bottom: 2rem; color: var(--muted); max-width: 640px; }
+    #course-desc:empty { display: none; }
+    .subjects-title { margin-bottom: 1rem; color: var(--frost); }
+    .course-card .course-link { color: var(--ice); }
+    .state-msg { color: var(--muted); }
+
+    /* home.css hides every non-pill nav link on phones; students still need theirs */
+    @media (max-width: 720px) {
+      .student-nav .links { gap: .9rem; }
+      .student-nav .links a:not(.pill) { display: inline; font-size: .82rem; }
+      .student-nav .word { display: none; }
+      .student-nav .pill { padding: .45rem .9rem; font-size: .82rem; }
+    }
+  </style>
+</head>
+<body>
+  <header class="nav student-nav">
+    <div class="wrap">
+      <a class="logo" href="../index.html" aria-label="MEDPEACE home">
+        <svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="11" fill="#16233B"/><path d="M10 29V15l10 10 10-10v14" fill="none" stroke="#CFE3F8" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="20" cy="10.5" r="2.2" fill="#8FC8F0"/></svg>
+        <span class="word">MED<b>PEACE</b></span>
+      </a>
+      <nav class="links" aria-label="Student">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="resources.html" aria-current="page">Resources</a>
+        <a href="account.html">Account</a>
+        <button type="button" id="logout-btn" class="pill">Log Out</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap dashboard-main">
+    <a href="resources.html" class="back-link">← Back to Resources</a>
+    <h1 id="course-title">Loading…</h1>
+    <p id="course-desc"></p>
+
+    <h2 class="subjects-title">Subjects</h2>
+    <div class="course-grid" id="subjects-grid" aria-live="polite">
+      <!-- Subjects injected here -->
+    </div>
+    <noscript><p class="state-msg">JavaScript is required to load this course.</p></noscript>
+  </main>
+
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
+  <script defer src="../js/supabase-client.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      'use strict';
+      const $ = id => document.getElementById(id);
+      const grid = $('subjects-grid');
+      const never = new Promise(() => { });                       // halts the script after a redirect
+
+      const goLogin = () => {
+        const next = 'student/course.html' + location.search;
+        location.replace('../login.html?next=' + encodeURIComponent(next));
+        return never;
+      };
+      const message = (el, text) => {                              // text only, never HTML
+        const p = document.createElement('p');
+        p.className = 'state-msg';
+        p.textContent = text;
+        el.replaceChildren(p);
+      };
+
+      if (typeof supabaseClient === 'undefined' || !supabaseClient) {
+        $('course-title').textContent = 'Site not configured';
+        return;
+      }
+
+      // ---- Logout (this device only) ----
+      $('logout-btn').addEventListener('click', async () => {
+        try { await supabaseClient.auth.signOut({ scope: 'local' }); } catch (e) { console.error(e); }
+        location.replace('../login.html');
+      });
+
+      // ---- Must be signed in ----
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session) return goLogin();
+
+      // ---- Must have a sensible ?id= ----
+      const courseId = new URLSearchParams(location.search).get('id');
+      if (!courseId || !/^[A-Za-z0-9-]{1,64}$/.test(courseId)) {
+        location.replace('resources.html');
+        return never;
+      }
+
+      // ---- Course + subjects in parallel (RLS decides what this student may see) ----
+      const [courseRes, subjectsRes] = await Promise.all([
+        supabaseClient.from('courses').select('id, title, description').eq('id', courseId).maybeSingle(),
+        supabaseClient.from('subjects').select('id, title, description').eq('course_id', courseId).order('display_order')
+      ]);
+
+      const authFailed = r => r.error && (r.error.code === 'PGRST301' || /jwt/i.test(r.error.message || ''));
+      if (authFailed(courseRes) || authFailed(subjectsRes)) { await supabaseClient.auth.signOut({ scope: 'local' }); return goLogin(); }
+
+      if (courseRes.error) {
+        console.error(courseRes.error);
+        $('course-title').textContent = 'Could not load this course';
+        message(grid, 'Check your connection and refresh the page.');
+        return;
+      }
+      if (!courseRes.data) {                                        // missing, unpublished, or another year's course
+        $('course-title').textContent = 'Course not available';
+        $('course-desc').textContent = 'This course does not exist or is not available for your academic year.';
+        grid.replaceChildren();
+        return;
+      }
+
+      const course = courseRes.data;
+      document.title = course.title + ' - MEDPEACE';
+      $('course-title').textContent = course.title;
+      $('course-desc').textContent = course.description || '';
+
+      if (subjectsRes.error) {
+        console.error(subjectsRes.error);
+        message(grid, 'Could not load subjects. Please refresh the page.');
+        return;
+      }
+      const subjects = subjectsRes.data || [];
+      if (!subjects.length) { message(grid, 'No subjects added yet.'); return; }
+
+      // ---- Build cards with textContent (a title can never inject HTML) ----
+      const frag = document.createDocumentFragment();
+      for (const s of subjects) {
+        const card = document.createElement('div');
+        card.className = 'course-card';
+
+        const h3 = document.createElement('h3');
+        h3.textContent = s.title;
+
+        const p = document.createElement('p');
+        p.textContent = s.description || 'Explore lectures, books, and MCQs.';
+
+        const a = document.createElement('a');
+        a.className = 'course-link';
+        a.href = 'subject.html?id=' + encodeURIComponent(s.id);
+        a.textContent = 'View Content →';
+
+        card.append(h3, p, a);
+        frag.append(card);
+      }
+      grid.replaceChildren(frag);
+    });
+  </script>
+</body>
+</html>

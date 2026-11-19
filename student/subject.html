@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Subject - MEDPEACE</title>
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#070B14">
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/tokens.css">
+  <link rel="stylesheet" href="../css/home.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <link rel="stylesheet" href="../css/course.css"> <!-- reuse video styles -->
+  <style>
+    button.pill { border: 0; font: inherit; font-weight: 600; cursor: pointer; }
+    .student-nav .links a[aria-current="page"] { color: var(--frost); }
+
+    .back-link { display: inline-block; color: var(--ice); text-decoration: none; font-size: .92rem; }
+    .back-link:hover { color: var(--frost); }
+    #subject-title { margin: 1rem 0 1.6rem; color: var(--frost); font-weight: 600; letter-spacing: -.01em; }
+    .block-title { margin-bottom: 1rem; color: var(--frost); font-size: 1.1rem; }
+
+    /* two columns on desktop, one on tablet/phone (the old fixed 350px column overflowed phones) */
+    .subject-layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 2rem; align-items: start; }
+    .stack { display: flex; flex-direction: column; gap: 1rem; }
+    .stack.tight { gap: .35rem; }
+
+    .lec-title { font-size: 1rem; line-height: 1.4; }
+    .lec-by { display: block; margin-top: .15rem; font-size: .84rem; font-weight: 400; color: var(--muted); }
+    .lec-link { display: inline-block; margin-top: .6rem; color: var(--ice); text-decoration: none; font-weight: 500; }
+    .lec-link:hover { color: var(--frost); }
+    .lec-off { display: inline-block; margin-top: .6rem; font-size: .85rem; color: var(--muted); }
+
+    .res-link { display: flex; align-items: center; gap: .7rem; padding: .75rem .6rem; border-radius: 10px; border-bottom: 1px solid var(--line); color: var(--frost); text-decoration: none; transition: background .2s; }
+    .res-link:hover { background: var(--surface); }
+    .res-ico { width: 20px; height: 20px; flex: none; color: var(--ice); }
+    .res-ico svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+    .res-name { min-width: 0; overflow-wrap: anywhere; }
+    .res-tag { margin-left: auto; flex: none; padding: .12rem .55rem; border-radius: 99px; background: rgba(90, 110, 143, .25); font-size: .68rem; font-weight: 600; letter-spacing: .1em; color: var(--ice-soft); }
+    .state-msg { color: var(--muted); font-size: .92rem; }
+
+    @media (max-width: 860px) { .subject-layout { grid-template-columns: minmax(0, 1fr); } }
+
+    /* home.css hides every non-pill nav link on phones; students still need theirs */
+    @media (max-width: 720px) {
+      .student-nav .links { gap: .9rem; }
+      .student-nav .links a:not(.pill) { display: inline; font-size: .82rem; }
+      .student-nav .word { display: none; }
+      .student-nav .pill { padding: .45rem .9rem; font-size: .82rem; }
+    }
+  </style>
+</head>
+<body>
+  <header class="nav student-nav">
+    <div class="wrap">
+      <a class="logo" href="../index.html" aria-label="MEDPEACE home">
+        <svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="11" fill="#16233B"/><path d="M10 29V15l10 10 10-10v14" fill="none" stroke="#CFE3F8" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="20" cy="10.5" r="2.2" fill="#8FC8F0"/></svg>
+        <span class="word">MED<b>PEACE</b></span>
+      </a>
+      <nav class="links" aria-label="Student">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="resources.html" aria-current="page">Resources</a>
+        <a href="account.html">Account</a>
+        <button type="button" id="logout-btn" class="pill">Log Out</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap dashboard-main">
+    <a href="resources.html" class="back-link" id="back-link">← Back to Subjects</a>
+    <h1 id="subject-title">Loading…</h1>
+
+    <div class="subject-layout">
+      <!-- Left: lectures -->
+      <section aria-labelledby="lectures-title">
+        <h2 class="block-title" id="lectures-title">Lectures</h2>
+        <div id="lectures-list" class="stack" aria-live="polite"><!-- Lectures injected here --></div>
+      </section>
+
+      <!-- Right: books & MCQs -->
+      <aside class="playlist-section" aria-labelledby="resources-title">
+        <h2 class="block-title" id="resources-title">Resources</h2>
+        <div id="resources-list" class="stack tight" aria-live="polite"><!-- Books/MCQs injected here --></div>
+      </aside>
+    </div>
+    <noscript><p class="state-msg">JavaScript is required to load this page.</p></noscript>
+  </main>
+
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
+  <script defer src="../js/supabase-client.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      'use strict';
+      const $ = id => document.getElementById(id);
+      const never = new Promise(() => { });                       // halts the script after a redirect
+      const lecBox = $('lectures-list'), resBox = $('resources-list');
+
+      const goLogin = () => {
+        location.replace('../login.html?next=' + encodeURIComponent('student/subject.html' + location.search));
+        return never;
+      };
+      const note = (el, text) => {                                 // plain text only
+        const p = document.createElement('p');
+        p.className = 'state-msg';
+        p.textContent = text;
+        el.replaceChildren(p);
+      };
+
+      /* Only real web links may become href. Blocks javascript:, data:, etc. */
+      const YT_HOSTS = ['youtube.com', 'www.youtube.com', 'm.youtube.com', 'music.youtube.com', 'youtu.be', 'www.youtube-nocookie.com'];
+      function safeUrl(raw, youtubeOnly) {
+        try {
+          const u = new URL(String(raw || '').trim());
+          if (u.protocol !== 'https:' && u.protocol !== 'http:') return null;
+          if (youtubeOnly && !YT_HOSTS.includes(u.hostname.toLowerCase())) return null;
+          return u.href;
+        } catch { return null; }
+      }
+      const withDr = name => (/^dr\.?\s/i.test(name) ? name : 'Dr. ' + name);
+
+      const ICON_BOOK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5zM4 18.5V5.5"/></svg>';
+      const ICON_MCQ  = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>';
+
+      if (typeof supabaseClient === 'undefined' || !supabaseClient) {
+        $('subject-title').textContent = 'Site not configured';
+        return;
+      }
+
+      // ---- Logout (this device only) ----
+      $('logout-btn').addEventListener('click', async () => {
+        try { await supabaseClient.auth.signOut({ scope: 'local' }); } catch (e) { console.error(e); }
+        location.replace('../login.html');
+      });
+
+      // ---- Must be signed in ----
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session) return goLogin();
+
+      // ---- Must have a sensible ?id= ----
+      const subjectId = new URLSearchParams(location.search).get('id');
+      if (!subjectId || !/^[A-Za-z0-9-]{1,64}$/.test(subjectId)) {
+        location.replace('resources.html');
+        return never;
+      }
+
+      // ---- Subject, lectures and resources at the same time (RLS filters per student) ----
+      const [subRes, lecRes, resRes] = await Promise.all([
+        supabaseClient.from('subjects').select('id, title, course_id').eq('id', subjectId).maybeSingle(),
+        supabaseClient.from('lectures').select('id, title, lecturer_name, youtube_url').eq('subject_id', subjectId).order('display_order'),
+        supabaseClient.from('resources').select('id, title, url, type').eq('subject_id', subjectId).order('type').order('title')
+      ]);
+
+      const authFailed = r => r.error && (r.error.code === 'PGRST301' || /jwt/i.test(r.error.message || ''));
+      if ([subRes, lecRes, resRes].some(authFailed)) { await supabaseClient.auth.signOut({ scope: 'local' }); return goLogin(); }
+
+      if (subRes.error) {
+        console.error(subRes.error);
+        $('subject-title').textContent = 'Could not load this subject';
+        note(lecBox, 'Check your connection and refresh the page.');
+        resBox.replaceChildren();
+        return;
+      }
+      if (!subRes.data) {                                           // missing, or not available to this student
+        $('subject-title').textContent = 'Subject not available';
+        lecBox.replaceChildren(); resBox.replaceChildren();
+        return;
+      }
+
+      const subject = subRes.data;
+      document.title = subject.title + ' - MEDPEACE';
+      $('subject-title').textContent = subject.title;
+      if (subject.course_id && /^[A-Za-z0-9-]{1,64}$/.test(String(subject.course_id))) {
+        $('back-link').href = 'course.html?id=' + encodeURIComponent(subject.course_id);   // real parent, not history.back()
+      }
+
+      /* ---------- lectures ---------- */
+      if (lecRes.error) {
+        console.error(lecRes.error);
+        note(lecBox, 'Could not load lectures. Please refresh the page.');
+      } else if (!(lecRes.data || []).length) {
+        note(lecBox, 'No lectures added yet.');
+      } else {
+        const frag = document.createDocumentFragment();
+        for (const l of lecRes.data) {
+          const card = document.createElement('div');
+          card.className = 'course-card';
+
+          const h3 = document.createElement('h3');
+          h3.className = 'lec-title';
+          h3.textContent = l.title;
+          if (l.lecturer_name) {
+            const by = document.createElement('span');
+            by.className = 'lec-by';
+            by.textContent = withDr(String(l.lecturer_name).trim());
+            h3.append(by);
+          }
+          card.append(h3);
+
+          const href = safeUrl(l.youtube_url, true);
+          if (href) {
+            const a = document.createElement('a');
+            a.className = 'lec-link';
+            a.href = href;
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+            a.textContent = '▶ Watch on YouTube';
+            card.append(a);
+          } else {
+            const off = document.createElement('span');
+            off.className = 'lec-off';
+            off.textContent = 'Video link unavailable';
+            card.append(off);
+          }
+          frag.append(card);
+        }
+        lecBox.replaceChildren(frag);
+      }
+
+      /* ---------- resources (books / MCQs) ---------- */
+      if (resRes.error) {
+        console.error(resRes.error);
+        note(resBox, 'Could not load resources. Please refresh the page.');
+      } else {
+        const items = (resRes.data || []).map(r => ({ r, href: safeUrl(r.url, false) })).filter(x => x.href);
+        if (!items.length) {
+          note(resBox, 'No books or MCQs uploaded.');
+        } else {
+          const frag = document.createDocumentFragment();
+          for (const { r, href } of items) {
+            const isBook = r.type === 'book';
+            const a = document.createElement('a');
+            a.className = 'res-link';
+            a.href = href;
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+
+            const ico = document.createElement('span');
+            ico.className = 'res-ico';
+            ico.innerHTML = isBook ? ICON_BOOK : ICON_MCQ;        // fixed icon markup, no user data
+
+            const name = document.createElement('span');
+            name.className = 'res-name';
+            name.textContent = r.title;
+
+            const tag = document.createElement('span');
+            tag.className = 'res-tag';
+            tag.textContent = isBook ? 'BOOK' : 'MCQ';
+
+            a.append(ico, name, tag);
+            frag.append(a);
+          }
+          resBox.replaceChildren(frag);
+        }
+      }
+    });
+  </script>
+</body>
+</html>
