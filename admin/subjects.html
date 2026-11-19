@@ -108,7 +108,8 @@
             <td>${s.title}</td>
             <td>${s.description || '-'}</td>
             <td>
-              <a href="lectures.html?subject_id=${s.id}" class="action-btn" style="text-decoration:none;">Manage Content</a>
+              <a href="lecturers.html?subject_id=${s.id}" class="action-btn" style="text-decoration:none;">Manage Lecturers</a>
+<a href="resources.html?subject_id=${s.id}" class="action-btn" style="text-decoration:none;">Manage Books/MCQs</a>
               <button class="action-btn" onclick="editSubject('${s.id}')">Edit</button>
               <button class="action-btn danger" onclick="deleteSubject('${s.id}')">Delete</button>
             </td>
