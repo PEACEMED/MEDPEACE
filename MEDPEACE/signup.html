@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Sign Up - MEDPEACE</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/auth.css">
+</head>
+<body>
+  <div class="auth-container">
+    <h2>Create Account</h2>
+    <p>Join MEDPEACE to access your resources.</p>
+    
+    <form id="signup-form">
+      <div class="form-group">
+        <label for="fullName">Full Name</label>
+        <input type="text" id="fullName" required placeholder="username">
+      </div>
+      <div class="form-group">
+        <label for="universityId">University ID</label>
+        <input type="text" id="universityId" required placeholder="ID">
+      </div>
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" required placeholder="email@example.com">
+      </div>
+      <div class="form-group">
+        <label for="academicYear">Medical Academic Year</label>
+        <select id="academicYear" required>
+          <option value="" disabled selected>Select your year</option>
+          <option value="1">First Year</option>
+          <option value="2">Second Year</option>
+          <option value="3">Third Year</option>
+          <option value="4">Fourth Year</option>
+          <option value="5">Fifth Year</option>
+          
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" required minlength="8" placeholder="Min. 8 characters">
+      </div>
+      <div class="form-group">
+        <label for="confirmPassword">Confirm Password</label>
+        <input type="password" id="confirmPassword" required minlength="6">
+      </div>
+      <div id="error-msg" class="error-msg"></div>
+      <button type="submit" class="btn-primary" id="submit-btn">Sign Up</button>
+    </form>
+    
+    <div class="auth-link">
+      Already have an account? <a href="login.html">Sign In</a>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-client.js"></script>
+  <script src="js/auth.js"></script>
+</body>
+</html>

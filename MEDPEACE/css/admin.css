@@ -1,0 +1,218 @@
+/* css/admin.css */
+.admin-main {
+    padding-top: 100px;
+    padding-bottom: 4rem;
+    min-height: 100vh;
+}
+
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.admin-header h1 {
+    color: var(--frost);
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+}
+
+.btn-add {
+    background: var(--ice);
+    color: #07101C;
+    padding: 0.8rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-add:hover {
+    background: var(--ice-soft);
+    transform: translateY(-2px);
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.stat-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    padding: 1.5rem;
+    border-radius: var(--radius);
+    text-align: center;
+}
+
+.stat-card h3 {
+    color: var(--muted);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.stat-card .value {
+    color: var(--ice);
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-top: 0.5rem;
+}
+
+/* Tables */
+.admin-table-container {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow-x: auto;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.admin-table th,
+.admin-table td {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--line);
+    color: var(--frost);
+    font-size: 0.95rem;
+}
+
+.admin-table th {
+    background: rgba(7, 11, 20, 0.4);
+    color: var(--ice);
+    font-weight: 600;
+}
+
+.admin-table tr:hover td {
+    background: rgba(143, 200, 240, 0.05);
+}
+
+.action-btn {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--frost);
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    margin-right: 0.5rem;
+    transition: 0.2s;
+}
+
+.action-btn:hover {
+    border-color: var(--ice);
+    color: var(--ice);
+}
+
+.action-btn.danger:hover {
+    border-color: #ff6b6b;
+    color: #ff6b6b;
+}
+
+/* Modals */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal-content {
+    background: #0B1424;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    width: min(500px, 90vw);
+    padding: 2rem;
+    box-shadow: var(--shadow);
+}
+
+.modal-content h2 {
+    color: var(--frost);
+    margin-bottom: 1.5rem;
+}
+
+/* Forms */
+.form-group {
+    margin-bottom: 1.2rem;
+}
+
+.form-group label {
+    display: block;
+    color: var(--ice-soft);
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.8rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: var(--font);
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--ice);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}.modal-content {
+  background: rgba(11, 20, 36, 0.85); /* Deep frosted glass */
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  width: min(500px, 90vw);
+  padding: 2rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255,255,255,0.1);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  animation: slideUp 0.3s var(--ease);
+}
+
+.modal-content h2 { 
+  color: var(--frost); 
+  margin-bottom: 1.5rem; 
+  font-weight: 600;
+}
+
+.form-group { margin-bottom: 1.2rem; }
+.form-group label { display: block; color: var(--ice-soft); font-size: 0.85rem; margin-bottom: 0.5rem; font-weight: 500; }
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%;
+  padding: 0.8rem;
+  background: rgba(7, 11, 20, 0.6);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: var(--font);
+  transition: 0.3s var(--ease);
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+  outline: none;
+  border-color: var(--ice);
+  box-shadow: 0 0 0 3px rgba(143, 200, 240, 0.15);
+}
