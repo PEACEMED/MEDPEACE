@@ -192,5 +192,5 @@ MEDPEACE is built around a simple idea: give students one peaceful space where t
   <br />
   <em>Everything you need. One peaceful space.</em>
   <br /><br />
-  Made with purpose. Built for progress.
+  Made with purpose. Built for progress. <i>By Dr. Mohamed Abdelfatah</i>
 </p>
