@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://medpeace.pages.dev/sitemap.xml
+Sitemap: https://medpeace.pages.dev/sitemap-pages.xml
